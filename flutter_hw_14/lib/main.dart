@@ -86,8 +86,17 @@ class _MyHomePageState extends State<MyHomePage> {
                   children: [
                     Row(
                       children: [
-                        CustomPaint(
-                          painter: WeatherIconPainter(1),
+                        StreamBuilder(
+                          stream: _pageStyleCubit.rainState,
+                          builder:
+                              (BuildContext context, AsyncSnapshot snapshot) {
+                            if (snapshot.hasData) {
+                              rainStateNumber = snapshot.data;
+                            }
+                            return CustomPaint(
+                              painter: WeatherIconPainter(rainStateNumber),
+                            );
+                          },
                         ),
                       ],
                     ),
@@ -124,7 +133,10 @@ class _MyHomePageState extends State<MyHomePage> {
                                 .themeData
                                 .elevatedButtonTheme
                                 .style,
-                            onPressed: () {},
+                            onPressed: () {
+                              _pageStyleCubit
+                                  .rainEventHandler(RainStateEvent.increment);
+                            },
                             icon: Icon(Icons.arrow_upward_rounded),
                             label: Text('Нашаманить'),
                           ),
@@ -136,7 +148,10 @@ class _MyHomePageState extends State<MyHomePage> {
                                 .themeData
                                 .elevatedButtonTheme
                                 .style,
-                            onPressed: () {},
+                            onPressed: () {
+                              _pageStyleCubit
+                                  .rainEventHandler(RainStateEvent.decrement);
+                            },
                             icon: Icon(Icons.arrow_downward_rounded),
                             label: Text('Раcшаманить'),
                           ),
@@ -177,14 +192,32 @@ class StyleAdjustmentWidget extends InheritedWidget {
   }
 }
 
+enum RainStateEvent { increment, decrement }
+
+double rainStateNumber = 0.5;
+
 class PageStyleCubit {
   final _themeColorStateController = StreamController<Color>();
+  final _rainStateController = StreamController<double>();
 
   Stream<Color> get themeColorState => _themeColorStateController.stream;
+  Stream<double> get rainState => _rainStateController.stream;
 
   void themeColorEventHandler(Color color) {
     _themeColorStateController.add(color);
     print('[PageStyleCubit themeColorEventHandler($color)]');
+  }
+
+  void rainEventHandler(RainStateEvent event) {
+    if (event == RainStateEvent.increment) {
+      if (rainStateNumber < 1) {
+        _rainStateController.add(rainStateNumber + 0.1);
+      }
+    } else {
+      if (rainStateNumber > 0) {
+        _rainStateController.add(rainStateNumber - 0.1);
+      }
+    }
   }
 
   void dispose() {
