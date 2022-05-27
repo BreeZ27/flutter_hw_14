@@ -16,13 +16,13 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(primarySwatch: Colors.red),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key? key, required this.title}) : super(key: key);
+  const MyHomePage({Key? key, required this.title}) : super(key: key);
 
   final String title;
 
@@ -43,8 +43,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   void initState() {
-    // _currentColor = colorsMap.keys[0];
-
+    _currentColor = Colors.red;
     _pageStyleCubit = PageStyleCubit();
     super.initState();
   }
@@ -62,53 +61,89 @@ class _MyHomePageState extends State<MyHomePage> {
       builder: (BuildContext context, AsyncSnapshot snapshot) {
         if (snapshot.hasData) {
           _currentColor = snapshot.data;
-          // currentTheme = snapshot.data;
         }
         return StyleAdjustmentWidget(
-          // themeData: ThemeData(
-          //     primaryColor:
-          //         _currentColor != null ? _currentColor! : Colors.red),
-          buttonTheme: ButtonTheme(
-            child: build(context),
+          themeData: ThemeData(
+            primaryColor: _currentColor != null ? _currentColor! : Colors.red,
+            elevatedButtonTheme: ElevatedButtonThemeData(
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all(_currentColor!),
+              ),
+            ),
+            appBarTheme: AppBarTheme(backgroundColor: _currentColor),
           ),
           child: Builder(
             builder: (BuildContext innerContext) {
-              // print(StyleAdjustmentWidget.of(context).themeData);
               return Scaffold(
                 appBar: AppBar(
+                  backgroundColor: StyleAdjustmentWidget.of(innerContext)
+                      .themeData
+                      .appBarTheme
+                      .backgroundColor,
                   title: Text(widget.title),
                 ),
-                body: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      ...colorsMap.keys.map(
-                        (e) => ElevatedButton(
-                          // style: StyleAdjustmentWidget.of(innerContext).themeData.elevatedButtonTheme,
-                          // style: ButtonStyle(backgroundColor: ),
-                          onPressed: () {
-                            if (e == _currentColor) {
-                              _pageStyleCubit
-                                  .themeColorEventHandler(Colors.red);
-                            } else {
-                              _pageStyleCubit.themeColorEventHandler(e);
-                            }
-                          },
-                          child: Text('${colorsMap[e]}'),
+                body: Column(
+                  children: [
+                    Row(
+                      children: [
+                        CustomPaint(
+                          painter: WeatherIconPainter(1),
                         ),
+                      ],
+                    ),
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ...colorsMap.keys.map(
+                            (e) => ElevatedButton(
+                              style: StyleAdjustmentWidget.of(innerContext)
+                                  .themeData
+                                  .elevatedButtonTheme
+                                  .style,
+                              onPressed: () {
+                                if (e == _currentColor) {
+                                  _pageStyleCubit
+                                      .themeColorEventHandler(Colors.red);
+                                } else {
+                                  _pageStyleCubit.themeColorEventHandler(e);
+                                }
+                              },
+                              child: Text('${colorsMap[e]}'),
+                            ),
+                          ),
+                        ],
                       ),
-                      Container(
-                        height: 100,
-                        width: 100,
-                        color: _currentColor,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        children: [
+                          ElevatedButton.icon(
+                            style: StyleAdjustmentWidget.of(innerContext)
+                                .themeData
+                                .elevatedButtonTheme
+                                .style,
+                            onPressed: () {},
+                            icon: Icon(Icons.arrow_upward_rounded),
+                            label: Text('Нашаманить'),
+                          ),
+                          Expanded(
+                            child: Container(),
+                          ),
+                          ElevatedButton.icon(
+                            style: StyleAdjustmentWidget.of(innerContext)
+                                .themeData
+                                .elevatedButtonTheme
+                                .style,
+                            onPressed: () {},
+                            icon: Icon(Icons.arrow_downward_rounded),
+                            label: Text('Раcшаманить'),
+                          ),
+                        ],
                       ),
-                      ElevatedButton(
-                        onPressed: () {},
-                        child: Text('data'),
-                        style: ElevatedButton.styleFrom(primary: _currentColor),
-                      )
-                    ],
-                  ),
+                    )
+                  ],
                 ),
               );
             },
@@ -122,16 +157,12 @@ class _MyHomePageState extends State<MyHomePage> {
 class StyleAdjustmentWidget extends InheritedWidget {
   const StyleAdjustmentWidget({
     required this.child,
-    // required this.themeData,
-    required this.buttonTheme,
+    required this.themeData,
     Key? key,
   }) : super(key: key, child: child);
 
   final Widget child;
-  // final ThemeData themeData;
-  final ButtonTheme buttonTheme;
-  // final Theme theme;
-  // ThemeData themeData = ThemeData(primaryColor: color);
+  final ThemeData themeData;
 
   static StyleAdjustmentWidget of(BuildContext context) {
     final _res =
@@ -159,4 +190,90 @@ class PageStyleCubit {
   void dispose() {
     _themeColorStateController.close();
   }
+}
+
+class WeatherIconPainter extends CustomPainter {
+  final double rainProbability;
+  WeatherIconPainter(this.rainProbability);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    late double _sunOpacity;
+    late double _cloudOpacity;
+    late double _rainOpacity;
+
+    if (rainProbability >= 0.5) {
+      _rainOpacity = 1;
+      _cloudOpacity = 1;
+      if (rainProbability >= 0.8) {
+        _sunOpacity = 0;
+      } else {
+        _sunOpacity = 0.75;
+      }
+    } else {
+      _rainOpacity = 0;
+      _sunOpacity = 1;
+      if (rainProbability > 0.15) {
+      } else {
+        _cloudOpacity = 0;
+      }
+    }
+
+    final sunPainter = Paint()
+      ..color = Colors.amberAccent.withOpacity(_sunOpacity)
+      ..style = PaintingStyle.fill;
+
+    final cloudPainter = Paint()
+      ..color = Colors.grey.withOpacity(_cloudOpacity)
+      ..style = PaintingStyle.fill;
+
+    final rainPainter = Paint()
+      ..color = Colors.blue.withOpacity(_rainOpacity)
+      ..style = PaintingStyle.fill;
+
+    canvas.drawCircle(Offset(50, 50), 30, sunPainter);
+
+    canvas.drawLine(Offset(70, 20), Offset(50, 10), cloudPainter);
+
+    var cloud = Path()
+      ..moveTo(10, 100)
+      ..addOval(Rect.fromLTWH(20, 50, 30, 30))
+      ..addOval(Rect.fromLTWH(40, 40, 40, 40))
+      ..addOval(Rect.fromLTWH(10, 60, 30, 30))
+      ..addOval(Rect.fromLTWH(60, 60, 30, 30))
+      ..addRect(Rect.fromLTWH(25, 60, 50, 30))
+      ..close();
+
+    canvas.drawPath(cloud, cloudPainter);
+
+    var droplet1 = Path()
+      ..addOval(Rect.fromCircle(center: Offset(25, 110), radius: 4))
+      ..close();
+
+    canvas.drawPath(droplet1, rainPainter);
+
+    var droplet2 = Path()
+      ..addOval(Rect.fromCircle(center: Offset(70, 105), radius: 4))
+      ..close();
+
+    canvas.drawPath(droplet2, rainPainter);
+
+    var droplet3 = Path()
+      ..addOval(Rect.fromCircle(center: Offset(40, 100), radius: 4))
+      ..close();
+
+    canvas.drawPath(droplet3, rainPainter);
+
+    var droplet4 = Path()
+      ..addOval(Rect.fromCircle(center: Offset(55, 115), radius: 4))
+      ..close();
+
+    canvas.drawPath(droplet4, rainPainter);
+  }
+
+  @override
+  bool shouldRepaint(WeatherIconPainter oldDelegate) => false;
+
+  @override
+  bool shouldRebuildSemantics(WeatherIconPainter oldDelegate) => false;
 }
