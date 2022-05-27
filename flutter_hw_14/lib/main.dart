@@ -6,7 +6,7 @@ void main() {
   runApp(const MyApp());
 }
 
-ThemeData currentTheme = ThemeData(primarySwatch: Colors.blueGrey);
+// ThemeData currentTheme = ThemeData(primarySwatch: Colors.blueGrey);
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
-      theme: currentTheme,
+      theme: ThemeData(primarySwatch: Colors.red),
       home: MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
@@ -61,15 +61,19 @@ class _MyHomePageState extends State<MyHomePage> {
       stream: _pageStyleCubit.themeColorState,
       builder: (BuildContext context, AsyncSnapshot snapshot) {
         if (snapshot.hasData) {
-          // _currentColor = snapshot.data;
-          currentTheme = snapshot.data;
+          _currentColor = snapshot.data;
+          // currentTheme = snapshot.data;
         }
         return StyleAdjustmentWidget(
-          themeData: ThemeData(
-              primaryColor:
-                  _currentColor != null ? _currentColor! : Colors.red),
+          // themeData: ThemeData(
+          //     primaryColor:
+          //         _currentColor != null ? _currentColor! : Colors.red),
+          buttonTheme: ButtonTheme(
+            child: build(context),
+          ),
           child: Builder(
             builder: (BuildContext innerContext) {
+              // print(StyleAdjustmentWidget.of(context).themeData);
               return Scaffold(
                 appBar: AppBar(
                   title: Text(widget.title),
@@ -80,6 +84,8 @@ class _MyHomePageState extends State<MyHomePage> {
                     children: [
                       ...colorsMap.keys.map(
                         (e) => ElevatedButton(
+                          // style: StyleAdjustmentWidget.of(innerContext).themeData.elevatedButtonTheme,
+                          // style: ButtonStyle(backgroundColor: ),
                           onPressed: () {
                             if (e == _currentColor) {
                               _pageStyleCubit
@@ -91,6 +97,16 @@ class _MyHomePageState extends State<MyHomePage> {
                           child: Text('${colorsMap[e]}'),
                         ),
                       ),
+                      Container(
+                        height: 100,
+                        width: 100,
+                        color: _currentColor,
+                      ),
+                      ElevatedButton(
+                        onPressed: () {},
+                        child: Text('data'),
+                        style: ElevatedButton.styleFrom(primary: _currentColor),
+                      )
                     ],
                   ),
                 ),
@@ -104,16 +120,24 @@ class _MyHomePageState extends State<MyHomePage> {
 }
 
 class StyleAdjustmentWidget extends InheritedWidget {
-  StyleAdjustmentWidget(
-      {Key? key, required this.child, required this.themeData})
-      : super(key: key, child: child);
+  const StyleAdjustmentWidget({
+    required this.child,
+    // required this.themeData,
+    required this.buttonTheme,
+    Key? key,
+  }) : super(key: key, child: child);
 
   final Widget child;
-  final ThemeData themeData;
+  // final ThemeData themeData;
+  final ButtonTheme buttonTheme;
+  // final Theme theme;
   // ThemeData themeData = ThemeData(primaryColor: color);
 
-  static StyleAdjustmentWidget? of(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<StyleAdjustmentWidget>();
+  static StyleAdjustmentWidget of(BuildContext context) {
+    final _res =
+        context.dependOnInheritedWidgetOfExactType<StyleAdjustmentWidget>();
+    assert(_res != null, '[No _res]');
+    return _res!;
   }
 
   @override
@@ -123,12 +147,12 @@ class StyleAdjustmentWidget extends InheritedWidget {
 }
 
 class PageStyleCubit {
-  final _themeColorStateController = StreamController<ThemeData>();
+  final _themeColorStateController = StreamController<Color>();
 
-  Stream<ThemeData> get themeColorState => _themeColorStateController.stream;
+  Stream<Color> get themeColorState => _themeColorStateController.stream;
 
-  void themeColorEventHandler(MaterialColor color) {
-    _themeColorStateController.add(ThemeData(primarySwatch: color));
+  void themeColorEventHandler(Color color) {
+    _themeColorStateController.add(color);
     print('[PageStyleCubit themeColorEventHandler($color)]');
   }
 
