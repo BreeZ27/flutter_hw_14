@@ -231,22 +231,24 @@ class WeatherIconPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    late double _sunOpacity;
-    late double _cloudOpacity;
-    late double _rainOpacity;
+    double _sunOpacity = 1;
+    double _cloudOpacity = 1;
+    double _rainOpacity = 1;
+    print(rainProbability);
 
     if (rainProbability >= 0.5) {
       _rainOpacity = 1;
       _cloudOpacity = 1;
-      if (rainProbability >= 0.8) {
+      if (rainProbability >= 0.85) {
         _sunOpacity = 0;
       } else {
-        _sunOpacity = 0.75;
+        _sunOpacity = 1.5 - rainProbability;
       }
     } else {
       _rainOpacity = 0;
       _sunOpacity = 1;
       if (rainProbability > 0.15) {
+        _cloudOpacity = 2 * rainProbability;
       } else {
         _cloudOpacity = 0;
       }
