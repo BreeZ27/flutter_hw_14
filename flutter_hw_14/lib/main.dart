@@ -1,12 +1,15 @@
 import 'dart:async';
 import 'package:flutter/animation.dart';
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
 
 void main() {
   runApp(const MyApp());
 }
 
-// ThemeData currentTheme = ThemeData(primarySwatch: Colors.blueGrey);
+double rainStateNumber = 0;
+
+enum RainStateEvent { increment, decrement }
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -34,7 +37,6 @@ class _MyHomePageState extends State<MyHomePage>
     with SingleTickerProviderStateMixin {
   late final PageStyleCubit _pageStyleCubit;
 
-  // late Animation animation;
   late AnimationController _controller;
 
   final Map<MaterialColor, String> colorsMap = {
@@ -47,9 +49,12 @@ class _MyHomePageState extends State<MyHomePage>
 
   @override
   void initState() {
-    _controller =
-        AnimationController(vsync: this, duration: Duration(milliseconds: 300));
-    // animation =
+    _controller = AnimationController(
+      lowerBound: 1,
+      upperBound: 2,
+      vsync: this,
+      duration: const Duration(seconds: 1),
+    );
 
     _currentColor = Colors.red;
     _pageStyleCubit = PageStyleCubit();
@@ -59,13 +64,13 @@ class _MyHomePageState extends State<MyHomePage>
   @override
   void dispose() {
     _pageStyleCubit.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
-  Widget _child = Text('data');
-
   @override
   Widget build(BuildContext context) {
+    print('_controller.value: ${_controller.value}');
     return StreamBuilder(
       stream: _pageStyleCubit.themeColorState,
       builder: (BuildContext context, AsyncSnapshot snapshot) {
@@ -84,6 +89,19 @@ class _MyHomePageState extends State<MyHomePage>
           ),
           child: Builder(
             builder: (BuildContext innerContext) {
+              //
+              Widget _animatedWeatherWidget = StreamBuilder(
+                stream: _pageStyleCubit.rainState,
+                builder: (BuildContext context, AsyncSnapshot snapshot) {
+                  if (snapshot.hasData) {
+                    rainStateNumber = snapshot.data;
+                  }
+                  return CustomPaint(
+                    painter: WeatherIconPainter(rainStateNumber),
+                  );
+                },
+              );
+
               return Scaffold(
                 appBar: AppBar(
                   backgroundColor: StyleAdjustmentWidget.of(innerContext)
@@ -133,8 +151,8 @@ class _MyHomePageState extends State<MyHomePage>
                                   _pageStyleCubit.rainEventHandler(
                                       RainStateEvent.increment);
                                 },
-                                icon: Icon(Icons.arrow_upward_rounded),
-                                label: Text('Нашаманить'),
+                                icon: const Icon(Icons.arrow_upward_rounded),
+                                label: const Text('Нашаманить'),
                               ),
                               Expanded(
                                 child: Container(),
@@ -153,7 +171,7 @@ class _MyHomePageState extends State<MyHomePage>
                               ),
                             ],
                           ),
-                        )
+                        ),
                       ],
                     ),
                     // Container(
@@ -166,30 +184,29 @@ class _MyHomePageState extends State<MyHomePage>
                     //     ),
                     //   ),
                     // ),
+
                     AnimatedBuilder(
-                      animation: CurvedAnimation(
-                          parent: _controller, curve: Curves.easeIn),
+                      animation: _controller,
+                      child: _animatedWeatherWidget,
                       builder: (BuildContext context, Widget? child) {
-                        return Container(child: child);
+                        return Transform.scale(
+                          scale: _controller.value,
+                          child: child,
+                        );
                       },
-                      child: _child,
                     ),
-                    Row(
-                      children: [
-                        StreamBuilder(
-                          stream: _pageStyleCubit.rainState,
-                          builder:
-                              (BuildContext context, AsyncSnapshot snapshot) {
-                            if (snapshot.hasData) {
-                              rainStateNumber = snapshot.data;
-                            }
-                            return CustomPaint(
-                              painter: WeatherIconPainter(rainStateNumber),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
+
+                    // StreamBuilder(
+                    //   stream: _pageStyleCubit.rainState,
+                    //   builder: (BuildContext context, AsyncSnapshot snapshot) {
+                    //     if (snapshot.hasData) {
+                    //       rainStateNumber = snapshot.data;
+                    //     }
+                    //     return CustomPaint(
+                    //       painter: WeatherIconPainter(rainStateNumber),
+                    //     );
+                    //   },
+                    // ),
                   ],
                 ),
               );
@@ -223,10 +240,6 @@ class StyleAdjustmentWidget extends InheritedWidget {
     return true;
   }
 }
-
-enum RainStateEvent { increment, decrement }
-
-double rainStateNumber = 0.5;
 
 class PageStyleCubit {
   final _themeColorStateController = StreamController<Color>();
@@ -343,18 +356,4 @@ class WeatherIconPainter extends CustomPainter {
 
   @override
   bool shouldRebuildSemantics(WeatherIconPainter oldDelegate) => false;
-}
-
-class WeatherWidget extends StatefulWidget {
-  WeatherWidget({Key? key}) : super(key: key);
-
-  @override
-  State<WeatherWidget> createState() => _WeatherWidgetState();
-}
-
-class _WeatherWidgetState extends State<WeatherWidget> {
-  @override
-  Widget build(BuildContext context) {
-    return Container();
-  }
 }
