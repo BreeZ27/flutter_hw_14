@@ -1,5 +1,5 @@
 import 'dart:async';
-
+import 'package:flutter/animation.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -30,8 +30,12 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage>
+    with SingleTickerProviderStateMixin {
   late final PageStyleCubit _pageStyleCubit;
+
+  // late Animation animation;
+  late AnimationController _controller;
 
   final Map<MaterialColor, String> colorsMap = {
     Colors.blueGrey: 'Серый',
@@ -43,6 +47,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   void initState() {
+    _controller =
+        AnimationController(vsync: this, duration: Duration(milliseconds: 300));
+    // animation =
+
     _currentColor = Colors.red;
     _pageStyleCubit = PageStyleCubit();
     super.initState();
@@ -53,6 +61,8 @@ class _MyHomePageState extends State<MyHomePage> {
     _pageStyleCubit.dispose();
     super.dispose();
   }
+
+  Widget _child = Text('data');
 
   @override
   Widget build(BuildContext context) {
@@ -146,9 +156,23 @@ class _MyHomePageState extends State<MyHomePage> {
                         )
                       ],
                     ),
-                    Container(
-                      decoration:
-                          BoxDecoration(color: Colors.black.withOpacity(0.2)),
+                    // Container(
+                    //   child: BackdropFilter(
+                    //     filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+                    //     child: Container(
+                    //       decoration: BoxDecoration(
+                    //         color: Colors.black.withOpacity(0.1),
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
+                    AnimatedBuilder(
+                      animation: CurvedAnimation(
+                          parent: _controller, curve: Curves.easeIn),
+                      builder: (BuildContext context, Widget? child) {
+                        return Container(child: child);
+                      },
+                      child: _child,
                     ),
                     Row(
                       children: [
@@ -319,4 +343,18 @@ class WeatherIconPainter extends CustomPainter {
 
   @override
   bool shouldRebuildSemantics(WeatherIconPainter oldDelegate) => false;
+}
+
+class WeatherWidget extends StatefulWidget {
+  WeatherWidget({Key? key}) : super(key: key);
+
+  @override
+  State<WeatherWidget> createState() => _WeatherWidgetState();
+}
+
+class _WeatherWidgetState extends State<WeatherWidget> {
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
 }
