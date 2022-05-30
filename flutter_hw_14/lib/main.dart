@@ -77,6 +77,8 @@ class _MyHomePageState extends State<MyHomePage>
         if (snapshot.hasData) {
           _currentColor = snapshot.data;
         }
+
+        Offset _widgetOffset = Offset(0, 0);
         return StyleAdjustmentWidget(
           themeData: ThemeData(
             primaryColor: _currentColor != null ? _currentColor! : Colors.red,
@@ -96,8 +98,21 @@ class _MyHomePageState extends State<MyHomePage>
                   if (snapshot.hasData) {
                     rainStateNumber = snapshot.data;
                   }
-                  return CustomPaint(
-                    painter: WeatherIconPainter(rainStateNumber),
+
+                  return GestureDetector(
+                    onTap: () {
+                      if (_controller.value == 1) {
+                        _controller.forward();
+                        _widgetOffset = Offset(70, 70);
+                      } else {
+                        _controller.reverse();
+                        _widgetOffset = Offset(0, 0);
+                      }
+                    },
+                    child: CustomPaint(
+                      size: Size(100, 135),
+                      painter: WeatherIconPainter(rainStateNumber),
+                    ),
                   );
                 },
               );
@@ -190,6 +205,7 @@ class _MyHomePageState extends State<MyHomePage>
                       child: _animatedWeatherWidget,
                       builder: (BuildContext context, Widget? child) {
                         return Transform.scale(
+                          origin: const Offset(-60, -70),
                           scale: _controller.value,
                           child: child,
                         );
