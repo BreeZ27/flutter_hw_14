@@ -82,8 +82,74 @@ class _MyHomePageState extends State<MyHomePage> {
                       .backgroundColor,
                   title: Text(widget.title),
                 ),
-                body: Column(
+                body: Stack(
                   children: [
+                    Column(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              ...colorsMap.keys.map(
+                                (e) => ElevatedButton(
+                                  style: StyleAdjustmentWidget.of(innerContext)
+                                      .themeData
+                                      .elevatedButtonTheme
+                                      .style,
+                                  onPressed: () {
+                                    if (e == _currentColor) {
+                                      _pageStyleCubit
+                                          .themeColorEventHandler(Colors.red);
+                                    } else {
+                                      _pageStyleCubit.themeColorEventHandler(e);
+                                    }
+                                  },
+                                  child: Text('${colorsMap[e]}'),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Row(
+                            children: [
+                              ElevatedButton.icon(
+                                style: StyleAdjustmentWidget.of(innerContext)
+                                    .themeData
+                                    .elevatedButtonTheme
+                                    .style,
+                                onPressed: () {
+                                  _pageStyleCubit.rainEventHandler(
+                                      RainStateEvent.increment);
+                                },
+                                icon: Icon(Icons.arrow_upward_rounded),
+                                label: Text('Нашаманить'),
+                              ),
+                              Expanded(
+                                child: Container(),
+                              ),
+                              ElevatedButton.icon(
+                                style: StyleAdjustmentWidget.of(innerContext)
+                                    .themeData
+                                    .elevatedButtonTheme
+                                    .style,
+                                onPressed: () {
+                                  _pageStyleCubit.rainEventHandler(
+                                      RainStateEvent.decrement);
+                                },
+                                icon: Icon(Icons.arrow_downward_rounded),
+                                label: Text('Раcшаманить'),
+                              ),
+                            ],
+                          ),
+                        )
+                      ],
+                    ),
+                    Container(
+                      decoration:
+                          BoxDecoration(color: Colors.black.withOpacity(0.2)),
+                    ),
                     Row(
                       children: [
                         StreamBuilder(
@@ -100,64 +166,6 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                       ],
                     ),
-                    Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          ...colorsMap.keys.map(
-                            (e) => ElevatedButton(
-                              style: StyleAdjustmentWidget.of(innerContext)
-                                  .themeData
-                                  .elevatedButtonTheme
-                                  .style,
-                              onPressed: () {
-                                if (e == _currentColor) {
-                                  _pageStyleCubit
-                                      .themeColorEventHandler(Colors.red);
-                                } else {
-                                  _pageStyleCubit.themeColorEventHandler(e);
-                                }
-                              },
-                              child: Text('${colorsMap[e]}'),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        children: [
-                          ElevatedButton.icon(
-                            style: StyleAdjustmentWidget.of(innerContext)
-                                .themeData
-                                .elevatedButtonTheme
-                                .style,
-                            onPressed: () {
-                              _pageStyleCubit
-                                  .rainEventHandler(RainStateEvent.increment);
-                            },
-                            icon: Icon(Icons.arrow_upward_rounded),
-                            label: Text('Нашаманить'),
-                          ),
-                          Expanded(
-                            child: Container(),
-                          ),
-                          ElevatedButton.icon(
-                            style: StyleAdjustmentWidget.of(innerContext)
-                                .themeData
-                                .elevatedButtonTheme
-                                .style,
-                            onPressed: () {
-                              _pageStyleCubit
-                                  .rainEventHandler(RainStateEvent.decrement);
-                            },
-                            icon: Icon(Icons.arrow_downward_rounded),
-                            label: Text('Раcшаманить'),
-                          ),
-                        ],
-                      ),
-                    )
                   ],
                 ),
               );
