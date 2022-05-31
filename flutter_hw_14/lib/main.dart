@@ -214,17 +214,44 @@ class _MyHomePageState extends State<MyHomePage>
                         ),
                         MyCustomText(
                           child: Container(
-                            width: 200,
-                            height: 50,
+                            width: 350,
+                            height: 110,
                             decoration: BoxDecoration(
                               color: _currentColor!.withOpacity(0.15),
                               borderRadius: BorderRadius.circular(5),
                             ),
-                            // child: const Center(
-                            // child: Text('data'),
-                            // ),
+                            child: const Center(
+                              child: Text(
+                                'Шамань',
+                                style: TextStyle(
+                                  fontSize: 80,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
                           ),
-                          blur: 20,
+                          blur: 5,
+                          color: _currentColor!,
+                        ),
+                        MySecondCustomText(
+                          child: Container(
+                            width: 200,
+                            height: 150,
+                            decoration: BoxDecoration(
+                              color: _currentColor!.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                            child: const Center(
+                              child: Text(
+                                'data',
+                                style: TextStyle(
+                                  fontSize: 80,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                          blur: 4,
                           color: _currentColor!,
                         ),
                       ],
@@ -468,6 +495,88 @@ class RenderMyText extends RenderProxyBox {
       ..translate(dx, dy);
     context.paintChild(child!, offset);
     context.canvas
+      ..restore()
+      ..restore()
+      ..restore();
+  }
+}
+
+class MySecondCustomText extends SingleChildRenderObjectWidget {
+  const MySecondCustomText({
+    Key? key,
+    this.blur = 10,
+    this.color = Colors.black38,
+    this.offset = const Offset(10, 10),
+    required Widget child,
+  }) : super(key: key, child: child);
+
+  final double blur;
+  final Color color;
+  final Offset offset;
+
+  @override
+  SecondCustomRender createRenderObject(BuildContext context) {
+    print('[MyCustomText createRenderObject()]');
+    final SecondCustomRender renderObject =
+        SecondCustomRender(blur, color, offset.dx, offset.dy, BoxDecoration());
+    updateRenderObject(context, renderObject);
+    return renderObject;
+  }
+
+  @override
+  void updateRenderObject(
+      BuildContext context, SecondCustomRender renderObject) {
+    print('[MyCustomText updateRenderObject()]');
+    renderObject
+      ..color = color
+      ..blur = blur
+      ..dx = offset.dx
+      ..dy = offset.dy;
+  }
+}
+
+class SecondCustomRender extends RenderDecoratedBox {
+  Decoration decor;
+  double blur;
+  Color color;
+  double dx;
+  double dy;
+  SecondCustomRender(this.blur, this.color, this.dx, this.dy, this.decor,
+      {RenderBox? child})
+      : super(decoration: decor, child: child);
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    print('[SecondCustomRender paint()]');
+
+    final Rect rectOuter = offset & size;
+    final Rect rectInner = Rect.fromLTWH(
+      offset.dx,
+      offset.dy,
+      size.width - dx,
+      size.width - dy,
+    );
+
+    if (child == null) {
+      return;
+    }
+
+    final Canvas canvas = context.canvas..saveLayer(rectOuter, Paint());
+
+    context.paintChild(child!, offset);
+
+    final Paint shadowPaint = Paint()
+      ..blendMode = BlendMode.srcATop
+      ..imageFilter = ImageFilter.blur(sigmaX: blur, sigmaY: blur)
+      ..colorFilter = ColorFilter.mode(color, BlendMode.srcOut);
+
+    canvas
+      ..saveLayer(rectOuter, shadowPaint)
+      ..saveLayer(rectInner, Paint())
+      ..translate(dx, dy);
+    context.paintChild(child!, offset);
+
+    canvas
       ..restore()
       ..restore()
       ..restore();
