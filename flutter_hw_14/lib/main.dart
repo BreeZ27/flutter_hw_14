@@ -1,7 +1,10 @@
 import 'dart:async';
+import 'dart:ui';
 import 'package:flutter/animation.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
+
+import 'package:flutter/rendering.dart';
 
 void main() {
   runApp(const MyApp());
@@ -51,7 +54,7 @@ class _MyHomePageState extends State<MyHomePage>
   void initState() {
     _controller = AnimationController(
       lowerBound: 1,
-      upperBound: 2,
+      upperBound: 1.5,
       vsync: this,
       duration: const Duration(seconds: 1),
     );
@@ -70,7 +73,7 @@ class _MyHomePageState extends State<MyHomePage>
 
   @override
   Widget build(BuildContext context) {
-    print('_controller.value: ${_controller.value}');
+    // print('_controller.value: ${_controller.value}');
     return StreamBuilder(
       stream: _pageStyleCubit.themeColorState,
       builder: (BuildContext context, AsyncSnapshot snapshot) {
@@ -78,7 +81,6 @@ class _MyHomePageState extends State<MyHomePage>
           _currentColor = snapshot.data;
         }
 
-        Offset _widgetOffset = Offset(0, 0);
         return StyleAdjustmentWidget(
           themeData: ThemeData(
             primaryColor: _currentColor != null ? _currentColor! : Colors.red,
@@ -98,20 +100,43 @@ class _MyHomePageState extends State<MyHomePage>
                   if (snapshot.hasData) {
                     rainStateNumber = snapshot.data;
                   }
+                  _controller.addListener(() {
+                    _pageStyleCubit.textOpacityValueHandler(_controller.value);
+                  });
 
                   return GestureDetector(
                     onTap: () {
                       if (_controller.value == 1) {
                         _controller.forward();
-                        _widgetOffset = Offset(70, 70);
                       } else {
                         _controller.reverse();
-                        _widgetOffset = Offset(0, 0);
                       }
                     },
-                    child: CustomPaint(
-                      size: Size(100, 135),
-                      painter: WeatherIconPainter(rainStateNumber),
+                    child: SizedBox(
+                      height: 155,
+                      width: 100,
+                      child: Column(
+                        children: [
+                          CustomPaint(
+                              size: Size(100, 120),
+                              painter: WeatherIconPainter(rainStateNumber)),
+                          StreamBuilder(
+                            stream: _pageStyleCubit.textOpacityState,
+                            builder:
+                                (BuildContext context, AsyncSnapshot snapshot) {
+                              double _opacity = 0;
+                              if (snapshot.hasData) {
+                                // print('[snapshot.data: ${snapshot.data}]');
+                                _opacity = snapshot.data;
+                              }
+                              return Opacity(
+                                opacity: _opacity,
+                                child: Text('Облачно 15°С'),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
                     ),
                   );
                 },
@@ -187,19 +212,23 @@ class _MyHomePageState extends State<MyHomePage>
                             ],
                           ),
                         ),
+                        MyCustomText(
+                          child: Container(
+                            width: 200,
+                            height: 50,
+                            decoration: BoxDecoration(
+                              color: _currentColor!.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                            // child: const Center(
+                            // child: Text('data'),
+                            // ),
+                          ),
+                          blur: 20,
+                          color: _currentColor!,
+                        ),
                       ],
                     ),
-                    // Container(
-                    //   child: BackdropFilter(
-                    //     filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
-                    //     child: Container(
-                    //       decoration: BoxDecoration(
-                    //         color: Colors.black.withOpacity(0.1),
-                    //       ),
-                    //     ),
-                    //   ),
-                    // ),
-
                     AnimatedBuilder(
                       animation: _controller,
                       child: _animatedWeatherWidget,
@@ -211,18 +240,6 @@ class _MyHomePageState extends State<MyHomePage>
                         );
                       },
                     ),
-
-                    // StreamBuilder(
-                    //   stream: _pageStyleCubit.rainState,
-                    //   builder: (BuildContext context, AsyncSnapshot snapshot) {
-                    //     if (snapshot.hasData) {
-                    //       rainStateNumber = snapshot.data;
-                    //     }
-                    //     return CustomPaint(
-                    //       painter: WeatherIconPainter(rainStateNumber),
-                    //     );
-                    //   },
-                    // ),
                   ],
                 ),
               );
@@ -260,9 +277,16 @@ class StyleAdjustmentWidget extends InheritedWidget {
 class PageStyleCubit {
   final _themeColorStateController = StreamController<Color>();
   final _rainStateController = StreamController<double>();
+  final _textOpacityController = StreamController<double>();
 
   Stream<Color> get themeColorState => _themeColorStateController.stream;
   Stream<double> get rainState => _rainStateController.stream;
+  Stream<double> get textOpacityState => _textOpacityController.stream;
+
+  void textOpacityValueHandler(double value) {
+    _textOpacityController.add(value - 1);
+    print('[PageStyleCubit textOpacityValueHandler($value)]');
+  }
 
   void themeColorEventHandler(Color color) {
     _themeColorStateController.add(color);
@@ -295,7 +319,7 @@ class WeatherIconPainter extends CustomPainter {
     double _sunOpacity = 1;
     double _cloudOpacity = 1;
     double _rainOpacity = 1;
-    print(rainProbability);
+    // print(rainProbability);
 
     if (rainProbability >= 0.5) {
       _rainOpacity = 1;
@@ -372,4 +396,80 @@ class WeatherIconPainter extends CustomPainter {
 
   @override
   bool shouldRebuildSemantics(WeatherIconPainter oldDelegate) => false;
+}
+
+class MyCustomText extends SingleChildRenderObjectWidget {
+  const MyCustomText({
+    Key? key,
+    this.blur = 10,
+    this.color = Colors.black38,
+    this.offset = const Offset(10, 10),
+    required Widget child,
+  }) : super(key: key, child: child);
+
+  final double blur;
+  final Color color;
+  final Offset offset;
+
+  @override
+  RenderMyText createRenderObject(BuildContext context) {
+    print('[MyCustomText createRenderObject()]');
+    final RenderMyText renderObject =
+        RenderMyText(blur, color, offset.dx, offset.dy);
+    updateRenderObject(context, renderObject);
+    return renderObject;
+  }
+
+  @override
+  void updateRenderObject(BuildContext context, RenderMyText renderObject) {
+    print('[MyCustomText updateRenderObject()]');
+    renderObject
+      ..color = color
+      ..blur = blur
+      ..dx = offset.dx
+      ..dy = offset.dy;
+  }
+}
+
+class RenderMyText extends RenderProxyBox {
+  double blur;
+  Color color;
+  double dx;
+  double dy;
+
+  RenderMyText(this.blur, this.color, this.dx, this.dy, {RenderBox? child})
+      : super(child);
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    print('[RenderMyText paint]');
+    if (child == null) {
+      return;
+    }
+    final Rect rectOuter = offset & size;
+    final Rect rectInner = Rect.fromLTWH(
+      offset.dx,
+      offset.dy,
+      size.width - dx,
+      size.width - dy,
+    );
+    final Canvas canvas = context.canvas..saveLayer(rectOuter, Paint());
+
+    context.paintChild(child!, offset);
+
+    final Paint shadowPaint = Paint()
+      ..blendMode = BlendMode.srcATop
+      ..imageFilter = ImageFilter.blur(sigmaX: blur, sigmaY: blur)
+      ..colorFilter = ColorFilter.mode(color, BlendMode.srcOut);
+
+    canvas
+      ..saveLayer(rectOuter, shadowPaint)
+      ..saveLayer(rectInner, Paint())
+      ..translate(dx, dy);
+    context.paintChild(child!, offset);
+    context.canvas
+      ..restore()
+      ..restore()
+      ..restore();
+  }
 }
