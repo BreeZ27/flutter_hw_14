@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'dart:ui';
-import 'package:flutter/animation.dart';
 import 'package:flutter/material.dart';
-import 'dart:math' as math;
 
 import 'package:flutter/rendering.dart';
 
@@ -118,7 +116,7 @@ class _MyHomePageState extends State<MyHomePage>
                       child: Column(
                         children: [
                           CustomPaint(
-                              size: Size(100, 120),
+                              size: const Size(100, 120),
                               painter: WeatherIconPainter(rainStateNumber)),
                           StreamBuilder(
                             stream: _pageStyleCubit.textOpacityState,
@@ -131,7 +129,7 @@ class _MyHomePageState extends State<MyHomePage>
                               }
                               return Opacity(
                                 opacity: _opacity,
-                                child: Text('Облачно 15°С'),
+                                child: const Text('Облачно 15°С'),
                               );
                             },
                           ),
@@ -206,8 +204,8 @@ class _MyHomePageState extends State<MyHomePage>
                                   _pageStyleCubit.rainEventHandler(
                                       RainStateEvent.decrement);
                                 },
-                                icon: Icon(Icons.arrow_downward_rounded),
-                                label: Text('Раcшаманить'),
+                                icon: const Icon(Icons.arrow_downward_rounded),
+                                label: const Text('Раcшаманить'),
                               ),
                             ],
                           ),
@@ -293,12 +291,12 @@ class PageStyleCubit {
 
   void textOpacityValueHandler(double value) {
     _textOpacityController.add(value - 1);
-    print('[PageStyleCubit textOpacityValueHandler($value)]');
+    // print('[PageStyleCubit textOpacityValueHandler($value)]');
   }
 
   void themeColorEventHandler(Color color) {
     _themeColorStateController.add(color);
-    print('[PageStyleCubit themeColorEventHandler($color)]');
+    // print('[PageStyleCubit themeColorEventHandler($color)]');
   }
 
   void rainEventHandler(RainStateEvent event) {
@@ -359,41 +357,41 @@ class WeatherIconPainter extends CustomPainter {
       ..color = Colors.blue.withOpacity(_rainOpacity)
       ..style = PaintingStyle.fill;
 
-    canvas.drawCircle(Offset(50, 50), 30, sunPainter);
+    canvas.drawCircle(const Offset(50, 50), 30, sunPainter);
 
-    canvas.drawLine(Offset(70, 20), Offset(50, 10), cloudPainter);
+    canvas.drawLine(const Offset(70, 20), const Offset(50, 10), cloudPainter);
 
     var cloud = Path()
       ..moveTo(10, 100)
-      ..addOval(Rect.fromLTWH(20, 50, 30, 30))
-      ..addOval(Rect.fromLTWH(40, 40, 40, 40))
-      ..addOval(Rect.fromLTWH(10, 60, 30, 30))
-      ..addOval(Rect.fromLTWH(60, 60, 30, 30))
-      ..addRect(Rect.fromLTWH(25, 60, 50, 30))
+      ..addOval(const Rect.fromLTWH(20, 50, 30, 30))
+      ..addOval(const Rect.fromLTWH(40, 40, 40, 40))
+      ..addOval(const Rect.fromLTWH(10, 60, 30, 30))
+      ..addOval(const Rect.fromLTWH(60, 60, 30, 30))
+      ..addRect(const Rect.fromLTWH(25, 60, 50, 30))
       ..close();
 
     canvas.drawPath(cloud, cloudPainter);
 
     var droplet1 = Path()
-      ..addOval(Rect.fromCircle(center: Offset(25, 110), radius: 4))
+      ..addOval(Rect.fromCircle(center: const Offset(25, 110), radius: 4))
       ..close();
 
     canvas.drawPath(droplet1, rainPainter);
 
     var droplet2 = Path()
-      ..addOval(Rect.fromCircle(center: Offset(70, 105), radius: 4))
+      ..addOval(Rect.fromCircle(center: const Offset(70, 105), radius: 4))
       ..close();
 
     canvas.drawPath(droplet2, rainPainter);
 
     var droplet3 = Path()
-      ..addOval(Rect.fromCircle(center: Offset(40, 100), radius: 4))
+      ..addOval(Rect.fromCircle(center: const Offset(40, 100), radius: 4))
       ..close();
 
     canvas.drawPath(droplet3, rainPainter);
 
     var droplet4 = Path()
-      ..addOval(Rect.fromCircle(center: Offset(55, 115), radius: 4))
+      ..addOval(Rect.fromCircle(center: const Offset(55, 115), radius: 4))
       ..close();
 
     canvas.drawPath(droplet4, rainPainter);
@@ -421,7 +419,7 @@ class MyCustomText extends SingleChildRenderObjectWidget {
 
   @override
   RenderMyText createRenderObject(BuildContext context) {
-    print('[MyCustomText createRenderObject()]');
+    // print('[MyCustomText createRenderObject()]');
     final RenderMyText renderObject =
         RenderMyText(blur, color, offset.dx, offset.dy);
     updateRenderObject(context, renderObject);
@@ -430,7 +428,7 @@ class MyCustomText extends SingleChildRenderObjectWidget {
 
   @override
   void updateRenderObject(BuildContext context, RenderMyText renderObject) {
-    print('[MyCustomText updateRenderObject()]');
+    // print('[MyCustomText updateRenderObject()]');
     renderObject
       ..color = color
       ..blur = blur
@@ -450,7 +448,7 @@ class RenderMyText extends RenderProxyBox {
 
   @override
   void paint(PaintingContext context, Offset offset) {
-    print('[RenderMyText paint]');
+    // print('[RenderMyText paint]');
     if (child == null) {
       return;
     }
